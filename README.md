@@ -1,285 +1,358 @@
 # AI-Powered Document Intelligence & Structured Data Extraction
 
-An AI-powered document processing system that extracts structured invoice information from digital and scanned PDF documents, validates the extracted data, handles errors and retries, and exposes the complete pipeline through a FastAPI API.
+An AI-powered document processing pipeline that extracts structured information from invoices and other business documents such as purchase orders, forms, resumes, and contracts.
 
-The project demonstrates a production-oriented document AI workflow:
-
-**Document → Text Extraction/OCR → LLM Extraction → Structured JSON → Pydantic Validation → Business Validation → API Response → Evaluation**
+The system supports digital and scanned PDFs, OCR-based text extraction, LLM-powered structured extraction, schema validation, business-rule validation, error handling, retry mechanisms, and LLM fallback.
 
 ---
 
-## 1. Project Overview
+## 🚀 Features
 
-The objective of this project is to automate information extraction from unstructured documents such as invoices.
-
-The system can:
-
-* Accept PDF documents.
-* Extract text from digital PDFs.
-* Automatically detect scanned/image-based PDFs.
-* Apply OCR when a PDF does not contain extractable text.
-* Use an LLM to extract predefined invoice fields.
-* Generate structured JSON output.
-* Validate the output using Pydantic.
-* Apply business-rule validation.
-* Handle missing and ambiguous information.
-* Retry temporary extraction failures.
-* Expose the extraction pipeline through FastAPI.
-* Evaluate the system using a 40-document dataset.
-* Compare two different prompting strategies.
+* 📄 PDF document processing
+* 🔍 Automatic detection of digital vs scanned PDFs
+* 🖨️ OCR for scanned documents using Tesseract
+* 🤖 LLM-based structured information extraction
+* 📦 Pydantic schema validation
+* ✅ Business-rule validation
+* 🔄 Retry mechanism for LLM failures
+* 🔀 Automatic fallback from Groq to Gemini
+* 🛠️ Invalid JSON handling and schema repair
+* ⚠️ Meaningful error handling
+* 🌐 FastAPI REST API
+* 📊 Evaluation of extraction performance
+* 🧪 Automated tests for major pipeline components
+* 🔐 Environment-based API key management
+* 📈 Prompt comparison and evaluation support
 
 ---
 
-# 2. System Workflow
-
-                PDF Invoice
-                    |
-                    v
-          +---------------------+
-          | Document Processing |
-          +---------------------+
-                    |
-             +------+------+
-             |             |
-        Digital PDF    Scanned PDF
-             |             |
-        PDF Text       OCR using
-        Extraction     Tesseract
-             |             |
-             +------+------+
-                    |
-                    v
-             Extracted Text
-                    |
-                    v
-          +---------------------+
-          |     Groq LLM        |
-          | Structured          |
-          | Extraction          |
-          +---------------------+
-                    |
-                    v
-             Structured JSON
-                    |
-                    v
-          +---------------------+
-          | Pydantic Validation |
-          +---------------------+
-                    |
-                    v
-          +---------------------+
-          | Business Validation |
-          +---------------------+
-                    |
-                    v
-             Final Result
-                    |
-                    v
-               FastAPI
-
----
-
-# 3. Main Features
-
-## Document Processing
-
-The system supports:
-
-* Digital PDF text extraction.
-* Scanned PDF detection.
-* OCR-based text extraction.
-* Automatic selection between normal PDF extraction and OCR.
-
-For digital PDFs, PyMuPDF is used.
-
-For scanned PDFs, pages are converted into images and processed using Tesseract OCR.
-
----
-
-## LLM-Based Extraction
-
-The project uses Groq with the:
+## 🏗️ System Architecture
 
 ```text
-openai/gpt-oss-20b
+                    ┌─────────────────────┐
+                    │   PDF / Document    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Document Processor  │
+                    └──────────┬──────────┘
+                               │
+                     ┌─────────┴─────────┐
+                     │                   │
+              Digital PDF          Scanned PDF
+                     │                   │
+                     ▼                   ▼
+              PDF Text          OCR Processing
+              Extraction         (Tesseract)
+                     │                   │
+                     └─────────┬─────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │    LLM Manager      │
+                    │                     │
+                    │  Primary: Groq      │
+                    │  Fallback: Gemini   │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Structured Invoice  │
+                    │       JSON          │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Pydantic Validation │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Business Validation│
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   FastAPI Response  │
+                    └─────────────────────┘
 ```
-
-model.
-
-The LLM extracts predefined invoice fields and returns structured JSON.
-
-The extraction prompt instructs the model to:
-
-* Extract only information present in the document.
-* Avoid guessing.
-* Return `null` for missing information.
-* Extract all line items.
-* Normalize dates.
-* Preserve numerical values.
-* Treat placeholders such as `MISSING`, `N/A`, `NA`, `UNKNOWN`, `-`, and `NOT PROVIDED` as missing values.
 
 ---
 
-# 4. Extracted Invoice Fields
+## 📁 Project Structure
 
-The system extracts:
+```text
+document-intelligence/
+│
+├── evaluation/
+│   ├── api_evaluate.py
+│   ├── evaluate.py
+│   └── prompt_comparison.py
+│
+├── src/
+│   ├── main.py
+│   │
+│   └── document_processor/
+│       ├── __init__.py
+│       ├── document_processor.py
+│       ├── errors.py
+│       ├── gemini_provider.py
+│       ├── groq_extractor.py
+│       ├── groq_provider.py
+│       ├── invoice_pipeline.py
+│       ├── llm_manager.py
+│       ├── llm_provider.py
+│       ├── logging_config.py
+│       ├── ocr.py
+│       ├── pdf_extractor.py
+│       ├── schemas.py
+│       └── validators.py
+│
+├── tests/
+│   ├── test_business_validation.py
+│   ├── test_gemini_provider.py
+│   ├── test_groq_extraction.py
+│   ├── test_image_ocr.py
+│   ├── test_invalid_json.py
+│   ├── test_invoice_pipeline.py
+│   ├── test_llm_fallback.py
+│   ├── test_llm_manager.py
+│   ├── test_llm_provider.py
+│   ├── test_ocr.py
+│   ├── test_ocr_failure.py
+│   ├── test_pdf_extraction.py
+│   ├── test_pdf_to_image.py
+│   ├── test_pipeline_fallback.py
+│   ├── test_scanned_pdf.py
+│   ├── test_schema.py
+│   ├── test_schema_repair.py
+│   └── test_validator.py
+│
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
 
-### Invoice-level fields
+> Invoice datasets, ground-truth files, generated reports, API keys, virtual environments, and temporary files are intentionally excluded from the repository.
 
-* Vendor name
-* Invoice number
-* Invoice date
-* Due date
-* Subtotal
-* Tax
-* Total
+---
 
-### Line-item fields
+## 🔄 Processing Pipeline
 
-* Description
-* Quantity
-* Unit price
+The system processes a document through the following stages:
+
+### 1. Document Upload
+
+The FastAPI endpoint accepts PDF documents.
+
+The API validates:
+
+* File type
+* File size
+* Upload request
+* Processing errors
+
+---
+
+### 2. PDF Text Extraction
+
+For digital PDFs, text is extracted directly using PyMuPDF.
+
+If meaningful text is found:
+
+```text
+Digital PDF detected → Direct text extraction
+```
+
+---
+
+### 3. OCR Processing
+
+If the PDF does not contain usable text, the system automatically switches to OCR.
+
+```text
+Scanned PDF
+     ↓
+PDF pages → Images
+     ↓
+Tesseract OCR
+     ↓
+Extracted text
+```
+
+OCR also includes retry logic with different processing configurations to improve reliability for difficult scanned documents.
+
+---
+
+### 4. LLM Extraction
+
+The extracted document text is passed to an LLM to identify predefined invoice fields.
+
+The system uses:
+
+**Primary provider:** Groq
+
+**Fallback provider:** Gemini
+
+The LLM manager includes retry and fallback handling so that temporary failures from the primary provider do not necessarily stop the complete pipeline.
+
+---
+
+### 5. Structured Output
+
+The extracted information is converted into a structured Pydantic model.
 
 Example:
 
 ```json
 {
-  "vendor_name": "ABC Pvt Ltd",
-  "invoice_number": "INV-2026-001",
-  "invoice_date": "2026-09-15",
-  "due_date": "2026-10-15",
+  "vendor_name": "ABC Textiles",
+  "invoice_number": "INV-1001",
+  "invoice_date": "2026-05-04",
+  "due_date": null,
   "line_items": [
     {
-      "description": "Laptop",
-      "quantity": 2,
-      "unit_price": 50000
+      "description": "Cotton Fabric",
+      "hsn_sac": "5208",
+      "quantity": 100,
+      "unit": "Meter",
+      "unit_price": 85.5,
+      "amount": 8550
     }
   ],
-  "subtotal": 100000,
-  "tax": 18000,
-  "total": 118000
+  "subtotal": 8550,
+  "discount": 100,
+  "freight": 200,
+  "cgst": 778.5,
+  "sgst": 778.5,
+  "igst": null,
+  "tax": 1557,
+  "round_off": 0,
+  "total": 10207
 }
 ```
 
 ---
 
-# 5. Pydantic Schema Validation
+## 📋 Invoice Schema
 
-Pydantic is used to ensure that the LLM output follows the expected data structure.
+The system currently extracts fields including:
 
-The main schema contains:
+### Invoice Information
 
-```text
-Invoice
- ├── vendor_name
- ├── invoice_number
- ├── invoice_date
- ├── due_date
- ├── line_items
- │    ├── description
- │    ├── quantity
- │    └── unit_price
- ├── subtotal
- ├── tax
- └── total
-```
+* Vendor name
+* Invoice number
+* Invoice date
+* Due date
 
-Pydantic validates:
+### Line Items
 
-* Data types.
-* Date formats.
-* List structures.
-* Nested line-item structures.
-* Required structural fields.
+* Description
+* HSN/SAC
+* Quantity
+* Unit
+* Unit price
+* Amount
+
+### Financial Information
+
+* Subtotal
+* Discount
+* Freight
+* CGST
+* SGST
+* IGST
+* Total tax
+* Round off
+* Final total
 
 ---
 
-# 6. Business Validation
+## ✅ Validation
 
-Schema validation alone does not guarantee that the invoice information makes business sense.
+The project uses two levels of validation.
 
-Therefore, additional business rules are applied.
+### Schema Validation
+
+Pydantic verifies that the extracted response follows the expected structure and data types.
+
+This helps detect:
+
+* Invalid field types
+* Missing required structures
+* Incorrect JSON structure
+* Invalid values
+
+### Business Validation
+
+Additional business rules verify logical consistency.
 
 Examples:
 
-* Vendor name must exist.
-* Invoice number must exist.
-* Invoice date must exist.
-* At least one line item must exist.
-* Line-item description must exist.
-* Quantity must be greater than zero.
-* Unit price cannot be negative.
-* Invoice date cannot be after due date.
-* Subtotal must exist.
-* Tax must exist.
-* Total must exist.
-* `subtotal + tax` must match the invoice total within a small tolerance.
-
-Example:
-
 ```text
-Subtotal = 1000
-Tax      = 180
-Total    = 1180
-
-1000 + 180 = 1180
+Quantity must be greater than 0
+Unit price cannot be negative
+Invoice date cannot be after due date
+Subtotal + tax should match total
+Line item description should be present
 ```
 
-The invoice passes this business validation rule.
+Validation errors are returned as meaningful messages rather than silently accepting incorrect data.
 
 ---
 
-# 7. Error Handling and Retry Mechanism
+## 🔄 Error Handling & Fallback
 
-The project includes handling for:
+The pipeline is designed to handle common real-world failures.
 
-* Empty documents.
-* Unsupported file types.
-* Large files.
-* Documents with no extractable text.
-* OCR processing issues.
-* Empty LLM responses.
-* Invalid JSON.
-* Schema validation failures.
-* Missing fields.
-* Business validation failures.
-* Unexpected server errors.
-
-The Groq extraction function supports retries.
-
-The retry mechanism uses increasing wait times:
+### OCR Failure
 
 ```text
-Attempt 1
-   |
-   v
+OCR attempt
+    ↓
 Failure
-   |
-   v
-Wait
-   |
-   v
-Attempt 2
-   |
-   v
+    ↓
+Retry with alternate configuration
+    ↓
 Failure
-   |
-   v
-Wait
-   |
-   v
-Attempt 3
+    ↓
+Meaningful OCR error
 ```
 
-This helps handle temporary extraction/API failures.
+### LLM Failure
+
+```text
+Groq
+ ↓
+Retry
+ ↓
+Failure
+ ↓
+Gemini fallback
+ ↓
+Structured extraction
+```
+
+### Invalid JSON
+
+If the LLM returns malformed JSON, the pipeline attempts to repair and validate the response before returning a final result.
+
+### Schema Failure
+
+Invalid structured output is detected through Pydantic validation and handled through the schema-repair flow.
+
+### Multiple Provider Failure
+
+If both the primary and fallback LLM providers fail, the pipeline returns a controlled error response instead of crashing.
 
 ---
 
-# 8. FastAPI
+## 🌐 FastAPI
 
-The complete pipeline is exposed through FastAPI.
+The project exposes the document-processing pipeline through FastAPI.
 
-Run the server using:
+Start the API with:
 
 ```powershell
 uvicorn src.main:app --reload
@@ -291,642 +364,207 @@ The API will be available at:
 http://127.0.0.1:8000
 ```
 
-Swagger documentation:
+FastAPI interactive documentation:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
----
-
-# 9. API Endpoint
-
-## POST `/extract-invoice`
-
-Upload an invoice PDF.
-
-The API:
-
-1. Receives the PDF.
-2. Validates the uploaded file.
-3. Saves it temporarily.
-4. Extracts text or performs OCR.
-5. Sends the text to the LLM.
-6. Validates the structured output.
-7. Performs business validation.
-8. Returns the final JSON response.
-9. Removes the temporary uploaded file.
+The API accepts a PDF document and returns structured invoice information or a meaningful error response.
 
 ---
 
-# 10. Example API Response
+## 🔐 Environment Variables
 
-Successful response:
+API keys are stored in a local `.env` file.
 
-```json
-{
-  "success": true,
-  "errors": [],
-  "invoice": {
-    "vendor_name": "ABC Pvt Ltd",
-    "invoice_number": "INV-2026-001",
-    "invoice_date": "2026-09-15",
-    "due_date": "2026-10-15",
-    "line_items": [
-      {
-        "description": "Laptop",
-        "quantity": 2,
-        "unit_price": 50000
-      }
-    ],
-    "subtotal": 100000,
-    "tax": 18000,
-    "total": 118000
-  }
-}
+Example:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
-If business validation fails:
+Never commit `.env` to GitHub.
 
-```json
-{
-  "success": false,
-  "errors": [
-    "Invoice date cannot be after due date."
-  ],
-  "invoice": {
-    "..."
-  }
-}
-```
+The `.gitignore` file prevents environment files from being uploaded.
 
 ---
 
-# 11. API Error Handling
+## ⚙️ Installation
 
-The API handles different classes of errors.
-
-| Situation                   | HTTP Status |
-| --------------------------- | ----------: |
-| Invalid file type           |         400 |
-| Empty file                  |         400 |
-| File larger than 10 MB      |         413 |
-| Document processing failure |         422 |
-| LLM/extraction failure      |         502 |
-| Unexpected server error     |         500 |
-
-The maximum supported uploaded file size is:
-10 MB
-
----
-
-# 12. Project Structure
-
-document-intelligence/
-│
-├── .venv/
-│
-├── data/
-│   ├── input/
-│   └── output/
-│
-├── evaluation/
-│   ├── documents/
-│   │   ├── invoice_01.pdf
-│   │   ├── invoice_02.pdf
-│   │   └── ...
-│   │
-│   ├── ground_truth/
-│   │   ├── invoice_01.json
-│   │   ├── invoice_02.json
-│   │   └── ...
-│   │
-│   ├── reports/
-│   │
-│   ├── evaluate.py
-│   ├── api_evaluate.py
-│   └── prompt_comparison.py
-│
-├── src/
-│   ├── main.py
-│   │
-│   ├── test_pdf_extraction.py
-│   ├── test_scanned_pdf.py
-│   ├── test_pdf_to_image.py
-│   ├── test_image_ocr.py
-│   ├── test_document_processor.py
-│   ├── test_schema.py
-│   ├── test_groq_extraction.py
-│   ├── test_validator.py
-│   └── test_invoice_pipeline.py
-│
-│   └── document_processor/
-│       ├── __init__.py
-│       ├── pdf_extractor.py
-│       ├── ocr.py
-│       ├── document_processor.py
-│       ├── schemas.py
-│       ├── groq_extractor.py
-│       ├── validators.py
-│       └── invoice_pipeline.py
-│
-├── .env
-├── .gitignore
-├── requirements.txt
-└── README.md
-
----
-
-# 13. Important Files
-
-### `src/document_processor/pdf_extractor.py`
-
-Responsible for extracting text from digital PDFs.
-
-### `src/document_processor/ocr.py`
-
-Responsible for OCR processing of scanned PDFs.
-
-### `src/document_processor/document_processor.py`
-
-Automatically decides whether to use normal PDF extraction or OCR.
-
-### `src/document_processor/schemas.py`
-
-Contains Pydantic models for structured invoice data.
-
-### `src/document_processor/groq_extractor.py`
-
-Handles LLM-based invoice extraction and retry logic.
-
-### `src/document_processor/validators.py`
-
-Contains business validation rules.
-
-### `src/document_processor/invoice_pipeline.py`
-
-Connects the complete document processing pipeline.
-
-### `src/main.py`
-
-FastAPI application.
-
-### `evaluation/evaluate.py`
-
-Performs internal evaluation against the ground-truth dataset.
-
-### `evaluation/api_evaluate.py`
-
-Evaluates the complete FastAPI pipeline.
-
-### `evaluation/prompt_comparison.py`
-
-Compares the basic and improved prompting strategies.
-
----
-
-# 14. Evaluation Dataset
-
-A dataset of **40 synthetic invoice documents** was created for evaluation.
-
-The dataset contains:
-
-```text
-40 total documents
-│
-├── 20 digital PDFs
-└── 20 scanned PDFs
-```
-
-Each document has a corresponding ground-truth JSON file.
-
-```text
-evaluation/
-├── documents/
-│   ├── invoice_01.pdf
-│   ├── ...
-│   └── invoice_40.pdf
-│
-└── ground_truth/
-    ├── invoice_01.json
-    ├── ...
-    └── invoice_40.json
-```
-
-The dataset includes documents with missing information to test the system's ability to detect missing fields.
-
----
-
-# 15. Evaluation Metrics
-
-The project evaluates:
-
-* Field-level accuracy.
-* Present-field accuracy.
-* Exact-match accuracy.
-* Success rate.
-* Invalid JSON rate.
-* Schema validation failure rate.
-* Business validation failure rate.
-* Missing-field detection rate.
-* Average processing time.
-* Digital vs scanned PDF performance.
-* Prompt strategy performance.
-
----
-
-# 16. Internal Pipeline Evaluation
-
-The complete internal pipeline was evaluated on 40 documents.
-
-### Overall Results
-
-| Metric                           |   Result |
-| -------------------------------- | -------: |
-| Documents evaluated              |       40 |
-| Success rate                     |  100.00% |
-| Invalid JSON rate                |    0.00% |
-| Schema validation rate           |  100.00% |
-| Average field accuracy           |   99.38% |
-| Present-field accuracy           |   99.32% |
-| Exact match rate                 |   95.00% |
-| Missing-field detection rate     |  100.00% |
-| Unexpected missing fields        |        0 |
-| Business validation failure rate |   55.00% |
-| Average processing time          | 4.12 sec |
-
-The business validation failure rate includes invoices intentionally containing missing or invalid business information in the synthetic evaluation dataset. Therefore, this metric does not directly represent an LLM extraction failure rate.
-
----
-
-# 17. Digital vs Scanned PDF Evaluation
-
-| Metric                    | Digital PDFs | Scanned PDFs |
-| ------------------------- | -----------: | -----------: |
-| Documents                 |           20 |           20 |
-| Field accuracy            |       98.75% |      100.00% |
-| Present-field accuracy    |       98.68% |      100.00% |
-| Exact match               |       90.00% |      100.00% |
-| Average processing time   |     3.15 sec |     5.10 sec |
-| Unexpected missing fields |            0 |            0 |
-
-The scanned documents required additional OCR processing, resulting in a higher average processing time.
-
----
-
-# 18. FastAPI Evaluation
-
-The complete FastAPI endpoint was evaluated using all 40 documents.
-
-| Metric                      |   Result |
-| --------------------------- | -------: |
-| Documents tested            |       40 |
-| Successful API requests     |    40/40 |
-| API success rate            |  100.00% |
-| Average field accuracy      |   99.69% |
-| Exact match rate            |   97.50% |
-| Average API processing time | 3.15 sec |
-
-This evaluation measures the complete API workflow rather than only the internal extraction function.
-
----
-
-# 19. Prompt Strategy Comparison
-
-Two prompting strategies were evaluated using:
-
-* The same Groq model.
-* The same 40-document dataset.
-* The same ground-truth data.
-* The same evaluation metrics.
-
-The only major difference was the extraction prompt.
-
-## Basic Prompt
-
-The basic prompt provides general instructions to extract the invoice fields and return JSON.
-
-## Improved Prompt
-
-The improved prompt adds more explicit instructions for:
-
-* Missing values.
-* `null` handling.
-* No guessing.
-* Date normalization.
-* Placeholder detection.
-* Line-item extraction.
-* Expected JSON fields.
-* Accurate numerical extraction.
-
----
-
-# 20. Prompt Comparison Results
-
-| Metric                  | Basic Prompt | Improved Prompt |
-| ----------------------- | -----------: | --------------: |
-| Success rate            |       95.00% |     **100.00%** |
-| Field accuracy          |       94.38% |      **99.69%** |
-| Exact match rate        |       90.00% |      **97.50%** |
-| Invalid JSON rate       |        0.00% |           0.00% |
-| Schema failure rate     |        2.50% |       **0.00%** |
-| Average processing time | **4.24 sec** |        6.18 sec |
-
-### Observations
-
-The improved prompt produced:
-
-* A 5.00 percentage-point increase in success rate.
-* A 5.31 percentage-point increase in field accuracy.
-* A 7.50 percentage-point increase in exact-match rate.
-* A reduction in schema failure rate from 2.50% to 0%.
-* No change in invalid JSON rate.
-
-However, the improved prompt increased average processing time from 4.24 seconds to 6.18 seconds.
-
-This demonstrates a trade-off between extraction accuracy/reliability and processing time.
-
----
-
-# 21. Field-Level Performance
-
-The final internal evaluation showed:
-
-| Field          | Accuracy |
-| -------------- | -------: |
-| Vendor name    |     100% |
-| Invoice number |      95% |
-| Invoice date   |     100% |
-| Due date       |     100% |
-| Subtotal       |     100% |
-| Tax            |     100% |
-| Total          |     100% |
-| Line items     |     100% |
-
-Missing-field detection was:
-
-```text
-24 / 24 = 100%
-```
-
-The system correctly detected all expected missing fields in the evaluation dataset.
-
----
-
-# 22. Installation
-
-Clone/download the project and navigate to the project directory:
+### 1. Clone the repository
 
 ```powershell
-cd C:\Users\user\Desktop\document-intelligence
+git clone https://github.com/kanudawalazeel/document-intelligence.git
+cd document-intelligence
 ```
 
-Create a virtual environment:
+### 2. Create a virtual environment
 
 ```powershell
 python -m venv .venv
 ```
 
-Activate it:
+### 3. Activate the environment
+
+Windows PowerShell:
 
 ```powershell
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+### 4. Install dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
----
-
-# 23. Environment Variables
+### 5. Configure API keys
 
 Create a `.env` file in the project root:
 
-```text
+```env
 GROQ_API_KEY=your_groq_api_key
-```
-
-Do not commit the `.env` file to Git.
-
-The `.gitignore` already contains:
-
-```text
-.env
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ---
 
-# 24. Running the API
+## 🧪 Running Tests
 
-From the project root:
+Tests are located inside:
+
+```text
+tests/
+```
+
+Run all tests using:
 
 ```powershell
-uvicorn src.main:app --reload
+pytest
 ```
 
-Open:
+The test suite covers areas such as:
+
+* PDF extraction
+* OCR
+* OCR failure handling
+* Schema validation
+* Schema repair
+* Business validation
+* Invalid JSON
+* LLM providers
+* LLM fallback
+* Pipeline fallback
+* Invoice processing
+
+---
+
+## 📊 Evaluation
+
+The project includes evaluation scripts for measuring extraction performance.
 
 ```text
-http://127.0.0.1:8000/docs
+evaluation/
+├── evaluate.py
+├── api_evaluate.py
+└── prompt_comparison.py
 ```
 
-Use the `/extract-invoice` endpoint to upload a PDF.
+The evaluation framework can measure metrics such as:
+
+* Field-level accuracy
+* Exact match rate
+* API success rate
+* Pipeline success rate
+* Processing time
+* Prompt performance
+
+### Evaluation Dataset
+
+Invoice datasets and ground-truth files used for evaluation are intentionally **not included in this GitHub repository**.
+
+This keeps the repository lightweight and prevents private or sample document data from being unnecessarily exposed.
 
 ---
 
-# 25. Running Internal Evaluation
+## 📈 Evaluation Results
 
-From the project root:
+A previous 40-document evaluation produced the following results:
 
-```powershell
-python evaluation/evaluate.py
-```
+| Metric                      |   Result |
+| --------------------------- | -------: |
+| Documents tested            |       40 |
+| API success rate            |  100.00% |
+| Pipeline success rate       |  100.00% |
+| Average field accuracy      |   99.38% |
+| Exact match rate            |   95.00% |
+| Average API processing time | 4.45 sec |
 
-The evaluation report is generated in:
-
-```text
-evaluation/reports/
-```
-
----
-
-# 26. Running FastAPI Evaluation
-
-Start the API first:
-
-```powershell
-uvicorn src.main:app --reload
-```
-
-Then, in another terminal:
-
-```powershell
-python evaluation/api_evaluate.py
-```
-
-The API evaluation report is stored in:
-
-```text
-evaluation/reports/api_evaluation_report.json
-```
+These results are dependent on the evaluation dataset, model/provider configuration, prompts, and runtime environment.
 
 ---
 
-# 27. Running Prompt Comparison
+## 🧰 Technologies Used
 
-From the project root:
-
-```powershell
-python evaluation/prompt_comparison.py
-```
-
-This compares:
-
-```text
-Basic Prompt
-      vs
-Improved Prompt
-```
-
-and generates:
-
-```text
-evaluation/reports/prompt_comparison_report.json
-```
+| Technology    | Purpose                          |
+| ------------- | -------------------------------- |
+| Python        | Core programming language        |
+| FastAPI       | REST API                         |
+| Pydantic      | Structured schema and validation |
+| PyMuPDF       | PDF text extraction              |
+| Tesseract OCR | Scanned document OCR             |
+| Pillow        | Image processing                 |
+| Groq          | Primary LLM provider             |
+| Gemini        | Fallback LLM provider            |
+| pytest        | Testing                          |
+| Git/GitHub    | Version control                  |
 
 ---
 
-# 28. Technologies Used
+## 🎯 Project Goals
 
-* Python
-* FastAPI
-* Uvicorn
-* PyMuPDF
-* Tesseract OCR
-* Pytesseract
-* Pillow
-* Pydantic
-* Groq API
-* OpenAI GPT-OSS-20B through Groq
-* python-dotenv
-* Requests
+The project focuses on building a reliable document-intelligence pipeline capable of handling real-world document-processing challenges.
 
----
+Key goals include:
 
-# 29. Limitations
-
-The current implementation has several limitations:
-
-1. The project currently focuses on invoice documents.
-2. OCR accuracy depends on document quality.
-3. Complex invoice layouts may require more advanced layout-aware processing.
-4. LLM extraction can still produce occasional field-level errors.
-5. Processing time increases when OCR is required.
-6. The evaluation dataset contains synthetic invoices and is relatively small.
-7. Only one LLM provider/model is used in the final production pipeline.
-8. The current fallback mechanism primarily uses retries rather than a secondary LLM/provider.
-9. Business validation rules are currently designed specifically for invoices.
+* Automating document information extraction
+* Supporting both digital and scanned PDFs
+* Producing reliable structured JSON
+* Validating extracted information
+* Handling malformed or incomplete LLM responses
+* Providing LLM fallback mechanisms
+* Exposing the pipeline through an API
+* Measuring extraction quality and performance
+* Improving robustness using real-world documents
 
 ---
 
-# 30. Future Improvements
+## 🔮 Future Improvements
 
-Possible future improvements include:
+Potential future improvements include:
 
-* Support for additional document types such as:
-
-  * Purchase orders
-  * Resumes
-  * Contracts
-  * Forms
-* Layout-aware document understanding.
-* Better table extraction.
-* Multiple LLM/provider fallback.
-* Confidence scoring.
-* Human-in-the-loop verification.
-* Database storage.
-* Authentication and authorization.
-* Background processing for large documents.
-* Batch document processing.
-* More extensive real-world evaluation datasets.
-* Advanced OCR models.
-* Monitoring and production logging.
-* Cost and token-usage tracking.
+* Support for additional document types
+* More advanced OCR preprocessing
+* Improved table extraction
+* Additional LLM providers
+* Configurable fallback providers
+* Asynchronous document processing
+* Background job processing
+* Docker containerization
+* API authentication
+* More extensive evaluation datasets
+* Improved confidence scoring for extracted fields
 
 ---
 
-# 31. Learning Outcomes
+## 👨‍💻 Author
 
-This project covers the complete workflow of a production-oriented Document AI system:
-
-```text
-Document AI
-    ↓
-PDF Text Extraction
-    ↓
-OCR
-    ↓
-LLM Structured Extraction
-    ↓
-Prompt Engineering
-    ↓
-JSON Output
-    ↓
-Pydantic Schema Validation
-    ↓
-Business Validation
-    ↓
-Error Handling
-    ↓
-Retry Mechanism
-    ↓
-FastAPI
-    ↓
-Evaluation
-    ↓
-Prompt Comparison
-```
-
-The project demonstrates how unstructured documents can be converted into reliable structured data using a combination of document processing, OCR, LLMs, schema validation, business rules, APIs, and quantitative evaluation.
+**Zeel Kanudawala**
 
 ---
 
-# 32. Project Status
+## 📄 License
 
-The major requirements of the assignment have been implemented:
-
-* [x] PDF upload
-* [x] Digital PDF text extraction
-* [x] Scanned PDF OCR
-* [x] Automatic document processing
-* [x] LLM-based structured extraction
-* [x] JSON output
-* [x] Pydantic schema validation
-* [x] Business-rule validation
-* [x] Missing-field handling
-* [x] Error handling
-* [x] Retry mechanism
-* [x] FastAPI integration
-* [x] 40-document evaluation dataset
-* [x] Field-level accuracy evaluation
-* [x] Exact-match evaluation
-* [x] API evaluation
-* [x] Digital vs scanned evaluation
-* [x] Prompt strategy comparison
-* [x] Evaluation reports
-* [x] README documentation
-
----
-
-# 33. Summary
-
-This project implements an end-to-end AI-powered invoice document intelligence pipeline.
-
-It combines:
-
-**PDF Processing + OCR + LLM Extraction + Structured JSON + Pydantic + Business Validation + Error Handling + Retry + FastAPI + Evaluation + Prompt Engineering**
-
-The final evaluation demonstrates high extraction accuracy while also identifying the practical trade-off between improved prompt quality and processing time.
+This project is intended for educational, internship, and development purposes.
