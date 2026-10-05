@@ -1,0 +1,31 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables / API keys
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE files
+.vscode/
+.idea/
+
+# Invoice datasets - DO NOT upload to GitHub
+data/input/
+data/output/
+
+# Evaluation invoice dataset - DO NOT upload
+evaluation/documents/
+evaluation/ground_truth/
+
+# Evaluation generated reports
+evaluation/reports/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,12 @@
+pymupdf
+python-dotenv
+pytesseract
+pillow
+pdf2image
+pydantic
+groq
+fastapi
+uvicorn
+python-multipart
+requests
+google-genai
