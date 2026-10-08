@@ -2,27 +2,30 @@
 
 An AI-powered document processing pipeline that extracts structured information from invoices and other business documents such as purchase orders, forms, resumes, and contracts.
 
-The system supports digital and scanned PDFs, OCR-based text extraction, LLM-powered structured extraction, schema validation, business-rule validation, error handling, retry mechanisms, and LLM fallback.
+The system supports digital and scanned PDFs, OCR-based text extraction, LLM-powered structured extraction, Pydantic schema validation, business-rule validation, error handling, retry mechanisms, and automatic LLM fallback.
 
 ---
 
 ## 🚀 Features
 
-* 📄 PDF document processing
-* 🔍 Automatic detection of digital vs scanned PDFs
-* 🖨️ OCR for scanned documents using Tesseract
-* 🤖 LLM-based structured information extraction
-* 📦 Pydantic schema validation
-* ✅ Business-rule validation
-* 🔄 Retry mechanism for LLM failures
-* 🔀 Automatic fallback from Groq to Gemini
-* 🛠️ Invalid JSON handling and schema repair
-* ⚠️ Meaningful error handling
-* 🌐 FastAPI REST API
-* 📊 Evaluation of extraction performance
-* 🧪 Automated tests for major pipeline components
-* 🔐 Environment-based API key management
-* 📈 Prompt comparison and evaluation support
+- 📄 PDF document processing
+- 🔍 Automatic detection of digital vs scanned PDFs
+- 🖨️ OCR for scanned documents using Tesseract
+- 🤖 LLM-based structured information extraction
+- 📦 Pydantic schema validation
+- ✅ Business-rule validation
+- 🔄 Retry mechanism for LLM failures
+- 🔀 Automatic fallback from Groq to Gemini
+- 🛠️ Invalid JSON handling and schema repair
+- ⚠️ Meaningful error handling
+- 🌐 FastAPI REST API
+- 📊 Extraction performance evaluation
+- 🧪 Automated tests for major pipeline components
+- 🔐 Environment-based API key management
+- 📈 Prompt comparison and evaluation support
+- 🐳 Docker containerization
+- ⚙️ Docker Compose support
+- 🔄 Development reload using Docker bind mounts
 
 ---
 
@@ -40,11 +43,11 @@ The system supports digital and scanned PDFs, OCR-based text extraction, LLM-pow
                                │
                      ┌─────────┴─────────┐
                      │                   │
-              Digital PDF          Scanned PDF
+                 Digital PDF        Scanned PDF
                      │                   │
                      ▼                   ▼
-              PDF Text          OCR Processing
-              Extraction         (Tesseract)
+              PDF Text             OCR Processing
+              Extraction             (Tesseract)
                      │                   │
                      └─────────┬─────────┘
                                │
@@ -59,7 +62,7 @@ The system supports digital and scanned PDFs, OCR-based text extraction, LLM-pow
                                ▼
                     ┌─────────────────────┐
                     │ Structured Invoice  │
-                    │       JSON          │
+                    │        JSON         │
                     └──────────┬──────────┘
                                │
                                ▼
@@ -129,7 +132,10 @@ document-intelligence/
 │   ├── test_schema_repair.py
 │   └── test_validator.py
 │
+├── .dockerignore
 ├── .gitignore
+├── compose.yaml
+├── Dockerfile
 ├── README.md
 └── requirements.txt
 ```
@@ -140,7 +146,7 @@ document-intelligence/
 
 ## 🔄 Processing Pipeline
 
-The system processes a document through the following stages:
+The system processes a document through the following stages.
 
 ### 1. Document Upload
 
@@ -148,10 +154,10 @@ The FastAPI endpoint accepts PDF documents.
 
 The API validates:
 
-* File type
-* File size
-* Upload request
-* Processing errors
+- File type
+- File size
+- Upload request
+- Processing errors
 
 ---
 
@@ -162,7 +168,9 @@ For digital PDFs, text is extracted directly using PyMuPDF.
 If meaningful text is found:
 
 ```text
-Digital PDF detected → Direct text extraction
+Digital PDF detected
+        ↓
+Direct text extraction
 ```
 
 ---
@@ -181,7 +189,7 @@ Tesseract OCR
 Extracted text
 ```
 
-OCR also includes retry logic with different processing configurations to improve reliability for difficult scanned documents.
+OCR includes retry logic with alternate processing configurations to improve reliability for difficult scanned documents.
 
 ---
 
@@ -241,31 +249,31 @@ The system currently extracts fields including:
 
 ### Invoice Information
 
-* Vendor name
-* Invoice number
-* Invoice date
-* Due date
+- Vendor name
+- Invoice number
+- Invoice date
+- Due date
 
 ### Line Items
 
-* Description
-* HSN/SAC
-* Quantity
-* Unit
-* Unit price
-* Amount
+- Description
+- HSN/SAC
+- Quantity
+- Unit
+- Unit price
+- Amount
 
 ### Financial Information
 
-* Subtotal
-* Discount
-* Freight
-* CGST
-* SGST
-* IGST
-* Total tax
-* Round off
-* Final total
+- Subtotal
+- Discount
+- Freight
+- CGST
+- SGST
+- IGST
+- Total tax
+- Round off
+- Final total
 
 ---
 
@@ -279,10 +287,10 @@ Pydantic verifies that the extracted response follows the expected structure and
 
 This helps detect:
 
-* Invalid field types
-* Missing required structures
-* Incorrect JSON structure
-* Invalid values
+- Invalid field types
+- Missing required structures
+- Incorrect JSON structure
+- Invalid values
 
 ### Business Validation
 
@@ -324,13 +332,13 @@ Meaningful OCR error
 
 ```text
 Groq
- ↓
+  ↓
 Retry
- ↓
+  ↓
 Failure
- ↓
+  ↓
 Gemini fallback
- ↓
+  ↓
 Structured extraction
 ```
 
@@ -371,6 +379,76 @@ http://127.0.0.1:8000/docs
 ```
 
 The API accepts a PDF document and returns structured invoice information or a meaningful error response.
+
+---
+
+## 🐳 Docker
+
+The project supports Docker for containerized execution.
+
+### Build the Docker image
+
+```powershell
+docker build -t document-intelligence .
+```
+
+### Run the Docker container
+
+```powershell
+docker run --name document-intelligence-container -p 8000:8000 --env-file .env document-intelligence:latest
+```
+
+The API will then be available at:
+
+```text
+http://localhost:8000/docs
+```
+
+The Docker image installs Tesseract OCR inside the container so scanned-document processing works without requiring a local Tesseract installation.
+
+---
+
+## ⚙️ Docker Compose
+
+The project also includes Docker Compose configuration.
+
+Start the application:
+
+```powershell
+docker compose up -d
+```
+
+Check running services:
+
+```powershell
+docker compose ps
+```
+
+View application logs:
+
+```powershell
+docker compose logs
+```
+
+Stop the services:
+
+```powershell
+docker compose down
+```
+
+The Compose configuration uses a bind mount for the source code and Uvicorn reload mode during development.
+
+```text
+Local src/
+    ↓
+Docker bind mount
+    ↓
+/app/src
+    ↓
+Uvicorn --reload
+```
+
+This allows source-code changes to be reflected inside the running development container without rebuilding the image for every code change.
 
 ---
 
@@ -429,6 +507,12 @@ GROQ_API_KEY=your_groq_api_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
+### 6. Run the application
+
+```powershell
+uvicorn src.main:app --reload
+```
+
 ---
 
 ## 🧪 Running Tests
@@ -447,17 +531,17 @@ pytest
 
 The test suite covers areas such as:
 
-* PDF extraction
-* OCR
-* OCR failure handling
-* Schema validation
-* Schema repair
-* Business validation
-* Invalid JSON
-* LLM providers
-* LLM fallback
-* Pipeline fallback
-* Invoice processing
+- PDF extraction
+- OCR
+- OCR failure handling
+- Schema validation
+- Schema repair
+- Business validation
+- Invalid JSON
+- LLM providers
+- LLM fallback
+- Pipeline fallback
+- Invoice processing
 
 ---
 
@@ -474,12 +558,12 @@ evaluation/
 
 The evaluation framework can measure metrics such as:
 
-* Field-level accuracy
-* Exact match rate
-* API success rate
-* Pipeline success rate
-* Processing time
-* Prompt performance
+- Field-level accuracy
+- Exact match rate
+- API success rate
+- Pipeline success rate
+- Processing time
+- Prompt performance
 
 ### Evaluation Dataset
 
@@ -493,13 +577,13 @@ This keeps the repository lightweight and prevents private or sample document da
 
 A previous 40-document evaluation produced the following results:
 
-| Metric                      |   Result |
-| --------------------------- | -------: |
-| Documents tested            |       40 |
-| API success rate            |  100.00% |
-| Pipeline success rate       |  100.00% |
-| Average field accuracy      |   99.38% |
-| Exact match rate            |   95.00% |
+| Metric | Result |
+|---|---:|
+| Documents tested | 40 |
+| API success rate | 100.00% |
+| Pipeline success rate | 100.00% |
+| Average field accuracy | 99.38% |
+| Exact match rate | 95.00% |
 | Average API processing time | 4.45 sec |
 
 These results are dependent on the evaluation dataset, model/provider configuration, prompts, and runtime environment.
@@ -508,18 +592,20 @@ These results are dependent on the evaluation dataset, model/provider configurat
 
 ## 🧰 Technologies Used
 
-| Technology    | Purpose                          |
-| ------------- | -------------------------------- |
-| Python        | Core programming language        |
-| FastAPI       | REST API                         |
-| Pydantic      | Structured schema and validation |
-| PyMuPDF       | PDF text extraction              |
-| Tesseract OCR | Scanned document OCR             |
-| Pillow        | Image processing                 |
-| Groq          | Primary LLM provider             |
-| Gemini        | Fallback LLM provider            |
-| pytest        | Testing                          |
-| Git/GitHub    | Version control                  |
+| Technology | Purpose |
+|---|---|
+| Python | Core programming language |
+| FastAPI | REST API |
+| Pydantic | Structured schema and validation |
+| PyMuPDF | PDF text extraction |
+| Tesseract OCR | Scanned document OCR |
+| Pillow | Image processing |
+| Groq | Primary LLM provider |
+| Gemini | Fallback LLM provider |
+| pytest | Testing |
+| Docker | Containerization |
+| Docker Compose | Container orchestration |
+| Git/GitHub | Version control |
 
 ---
 
@@ -529,15 +615,16 @@ The project focuses on building a reliable document-intelligence pipeline capabl
 
 Key goals include:
 
-* Automating document information extraction
-* Supporting both digital and scanned PDFs
-* Producing reliable structured JSON
-* Validating extracted information
-* Handling malformed or incomplete LLM responses
-* Providing LLM fallback mechanisms
-* Exposing the pipeline through an API
-* Measuring extraction quality and performance
-* Improving robustness using real-world documents
+- Automating document information extraction
+- Supporting both digital and scanned PDFs
+- Producing reliable structured JSON
+- Validating extracted information
+- Handling malformed or incomplete LLM responses
+- Providing LLM fallback mechanisms
+- Exposing the pipeline through an API
+- Measuring extraction quality and performance
+- Improving robustness using real-world documents
+- Supporting containerized deployment and development
 
 ---
 
@@ -545,17 +632,17 @@ Key goals include:
 
 Potential future improvements include:
 
-* Support for additional document types
-* More advanced OCR preprocessing
-* Improved table extraction
-* Additional LLM providers
-* Configurable fallback providers
-* Asynchronous document processing
-* Background job processing
-* Docker containerization
-* API authentication
-* More extensive evaluation datasets
-* Improved confidence scoring for extracted fields
+- Support for additional document types
+- More advanced OCR preprocessing
+- Improved table extraction
+- Additional LLM providers
+- Configurable fallback providers
+- Asynchronous document processing
+- Background job processing
+- API authentication
+- More extensive evaluation datasets
+- Improved confidence scoring for extracted fields
+- Production-ready monitoring and observability
 
 ---
 
