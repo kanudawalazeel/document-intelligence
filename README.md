@@ -651,7 +651,3 @@ Potential future improvements include:
 **Zeel Kanudawala**
 
 ---
-
-## 📄 License
-
-This project is intended for educational, internship, and development purposes.
