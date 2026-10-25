@@ -649,5 +649,3 @@ Potential future improvements include:
 ## 👨‍💻 Author
 
 **Zeel Kanudawala**
-
----
